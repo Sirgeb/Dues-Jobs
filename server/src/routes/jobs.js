@@ -9,70 +9,152 @@ router.use(authenticateUser);
 /**
  * GET /api/v1/jobs
  * Returns user's matched jobs, paginated and filtered.
- * Query params: status, source, keyword, page, limit
  */
 router.get('/', async (req, res) => {
-  const { status, source, keyword, page = 1, limit = 20, days } = req.query;
+  const {
+    status,
+    source,
+    keyword,
+    page = 1,
+    limit = 20,
+    days,
+    use_prefs,
+  } = req.query;
   const offset = (page - 1) * limit;
 
   try {
-    // We want jobs from 'user_jobs' joined with 'jobs'.
-    // Supabase can do this:
+    // Join user_jobs with jobs
+    // Use !inner join if source is provided to force a hard filter on the joined table
     let selectString = source ? '*, job:jobs!inner(*)' : '*, job:jobs(*)';
+
     let query = supabaseAdmin
       .from('user_jobs')
-      .select(selectString)
+      .select(selectString, { count: 'exact' })
       .eq('user_id', req.user.id);
 
+    // --- PREFERENCE FILTERING ---
+    if (use_prefs === 'true') {
+      const { data: prefs } = await supabaseAdmin
+        .from('user_preferences')
+        .select('keywords, locations, remote_only')
+        .eq('user_id', req.user.id)
+        .single();
+
+      if (prefs) {
+        if (prefs.keywords?.length > 0) {
+          const prefFilters = prefs.keywords
+            .map((k) => `title.ilike.%${k}%,description.ilike.%${k}%`)
+            .join(',');
+          query = query.or(prefFilters, { foreignTable: 'jobs' });
+        }
+        if (prefs.locations?.length > 0) {
+          query = query.in('job.location', prefs.locations);
+        }
+        if (prefs.remote_only) {
+          query = query.eq('job.is_remote', true);
+        }
+      }
+    }
+
+    // Keyword filtering on the joined table ('job')
+    if (keyword?.trim()) {
+      query = query.or(
+        `title.ilike.%${keyword}%,description.ilike.%${keyword}%`,
+        { foreignTable: 'jobs' },
+      );
+    }
+
+    // Filter by job posted_at, not user_jobs created_at
     if (days && !isNaN(parseInt(days))) {
       const msPerDay = 24 * 60 * 60 * 1000;
-      const daysCount = parseInt(days);
-      const cutoffDate = new Date(Date.now() - (daysCount * msPerDay));
-      // Filter by job posted_at, not user_jobs created_at
+      const cutoffDate = new Date(Date.now() - parseInt(days) * msPerDay);
       query = query.gte('job.posted_at', cutoffDate.toISOString());
     }
 
-    if (status) {
-      query = query.eq('status', status);
-    }
+    // Status Filter (user_jobs table)
+    if (status) query = query.eq('status', status);
 
-    // Keyword/Source filtering needs to be applied to the joined 'job' table?
-    // Supabase filtering on joined tables: 'jobs.source'
-    if (source) {
-      query = query.eq('job.source', source); // Use inner join on the alias 'job'
-    }
+    // Source filtering on the joined table alias 'job'
+    if (source) query = query.eq('job.source', source);
 
-    // Let's use simple pagination on user_jobs first
-    query = query.range(offset, offset + limit - 1);
-    
-    // Order by created_at desc
-    query = query.order('created_at', { ascending: false });
+    // Pagination and Sort
+    query = query
+      .range(offset, offset + limit - 1)
+      .order('created_at', { ascending: false });
 
     const { data, error, count } = await query;
-
     if (error) throw error;
 
-    // Filter in-memory if Supabase complex joins failed (simple solution for MVP)
-    // Or do proper search.
-    // Let's assume basic fetching works.
-    
     // Transform response structure
-    const jobs = data.map(item => ({
+    let jobs = data.map((item) => ({
       user_job_id: item.id,
       status: item.status,
       notes: item.notes,
-      ...item.job // Expand job details
+      ...item.job, // Expand job details (title, description, source, etc.)
     }));
 
-    res.json({ data: jobs, page: parseInt(page), limit: parseInt(limit) });
+    // Filter in-memory if Supabase complex joins failed (MVP safety)
+    if (keyword) {
+      const lowKey = keyword.toLowerCase();
+      jobs = jobs.filter(
+        (j) =>
+          j.title?.toLowerCase().includes(lowKey) ||
+          j.description?.toLowerCase().includes(lowKey),
+      );
+    }
 
+    res.json({
+      data: jobs,
+      total: count,
+      page: parseInt(page),
+      limit: parseInt(limit),
+    });
   } catch (err) {
     console.error('Get Jobs Error:', err);
-    res.status(500).json({ 
-      error: 'Failed to fetch jobs', 
+    res.status(500).json({
+      error: 'Failed to fetch jobs',
       details: err.message || err,
-      fullError: err,
-      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+  }
+});
+
+/**
+ * POST /api/v1/jobs/seed
+ * Seeds the database with an array of job objects.
+ * Expects: { jobs: Array<Job> }
+ */
+router.post('/seed', async (req, res) => {
+  const { jobs } = req.body;
+
+  // Validation: Ensure we actually have an array to work with
+  if (!jobs || !Array.isArray(jobs)) {
+    return res
+      .status(400)
+      .json({ error: 'Invalid input: "jobs" must be an array.' });
+  }
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('jobs')
+      .upsert(jobs, {
+        onConflict: 'canonical_hash',
+        ignoreDuplicates: false,
+      })
+      .select();
+
+    if (error) throw error;
+
+    res.status(201).json({
+      message: `Successfully seeded ${data?.length || 0} jobs.`,
+      count: data?.length || 0,
+      data: data,
+    });
+  } catch (err) {
+    console.error('Seed Jobs Error:', err);
+    res.status(500).json({
+      error: 'Failed to seed jobs',
+      details: err.message || err,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
     });
   }
 });
@@ -106,7 +188,6 @@ router.post('/:job_id/mark', async (req, res) => {
     }
 
     res.json({ message: 'Job updated', data: data[0] });
-
   } catch (err) {
     console.error('Update Job Error:', err);
     res.status(500).json({ error: 'Failed to update job' });

@@ -10,7 +10,7 @@ export default function Dashboard() {
   usePageMeta(
     'Dashboard',
     'View your personalized job matches. Discover remote job opportunities tailored to your skills and preferences.',
-    'dashboard, job matches, remote jobs, job recommendations'
+    'dashboard, job matches, remote jobs, job recommendations',
   );
 
   const [jobs, setJobs] = useState([]);
@@ -43,7 +43,7 @@ export default function Dashboard() {
       sources = [],
     } = prefs;
 
-    return jobs.filter(job => {
+    return jobs.filter((job) => {
       // 1. Source Filter
       if (sources && sources.length > 0 && !sources.includes(job.source)) {
         return false;
@@ -58,8 +58,8 @@ export default function Dashboard() {
       if (!remote_only && locations && locations.length > 0) {
         const jobLoc = (job.location || '').toLowerCase().trim();
         if (!job.is_remote) {
-          const locMatch = locations.some(loc => 
-            jobLoc.includes(loc.toLowerCase().trim())
+          const locMatch = locations.some((loc) =>
+            jobLoc.includes(loc.toLowerCase().trim()),
           );
           if (!locMatch) return false;
         }
@@ -67,8 +67,9 @@ export default function Dashboard() {
 
       // 4. Keyword Filter - Match ANY keyword
       if (keywords && keywords.length > 0) {
-        const text = `${job.title || ''} ${job.description || ''} ${job.company || ''}`.toLowerCase();
-        const keywordMatch = keywords.some(keyword => {
+        const text =
+          `${job.title || ''} ${job.description || ''} ${job.company || ''}`.toLowerCase();
+        const keywordMatch = keywords.some((keyword) => {
           const cleanKeyword = keyword.toLowerCase().trim();
           return cleanKeyword && text.includes(cleanKeyword);
         });
@@ -87,22 +88,24 @@ export default function Dashboard() {
       // Fetch all jobs without date filter first
       const response = await apiRequest('/api/v1/jobs?status=new');
       console.log('Fetched all jobs:', response);
-      
+
       const allJobs = response.data || [];
-      
+
       // Filter by user preferences if available
       let filteredJobs = allJobs;
       if (userPrefs) {
         filteredJobs = filterJobsByPreferences(allJobs, userPrefs);
       }
-      
+
       // Store preference-filtered jobs
       setAllFilteredJobs(filteredJobs);
-      
+
       // Apply date filter
       applyDateFilter(filteredJobs, dateRange);
-      
-      console.log(`Filtered: ${allJobs.length} total → ${filteredJobs.length} by preferences`);
+
+      console.log(
+        `Filtered: ${allJobs.length} total → ${filteredJobs.length} by preferences`,
+      );
     } catch (err) {
       console.error('Error fetching jobs:', err);
       setError(err.message);
@@ -114,13 +117,15 @@ export default function Dashboard() {
   // Apply date filter to preference-filtered jobs
   const applyDateFilter = (jobsToFilter, days) => {
     const daysAgo = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    const dateFilteredJobs = jobsToFilter.filter(job => {
+    const dateFilteredJobs = jobsToFilter.filter((job) => {
       if (!job.posted_at) return false;
       const postedDate = new Date(job.posted_at);
       return postedDate >= daysAgo;
     });
-    
-    console.log(`Applied ${days} day filter: ${jobsToFilter.length} → ${dateFilteredJobs.length} jobs`);
+
+    console.log(
+      `Applied ${days} day filter: ${jobsToFilter.length} → ${dateFilteredJobs.length} jobs`,
+    );
     setJobs(dateFilteredJobs);
   };
 
@@ -144,17 +149,17 @@ export default function Dashboard() {
   }, []);
 
   const manuallyTriggerFetch = async () => {
-    if(confirm("Trigger backend scraper? This may take a few seconds.")) {
+    if (confirm('Trigger backend scraper? This may take a few seconds.')) {
       try {
         setRefreshing(true);
         await triggerFetch();
         setTimeout(() => {
-          fetchPreferences().then(prefs => {
+          fetchPreferences().then((prefs) => {
             if (prefs) fetchJobs(prefs);
           });
         }, 2000);
-      } catch(e) {
-        alert("Failed to trigger fetch: " + e.message);
+      } catch (e) {
+        alert('Failed to trigger fetch: ' + e.message);
       } finally {
         setRefreshing(false);
       }
@@ -163,88 +168,99 @@ export default function Dashboard() {
 
   if (loading && jobs.length === 0) {
     return (
-      <div className="dashboard-loading">
-        <div className="loading-spinner-large"></div>
+      <div className='dashboard-loading'>
+        <div className='loading-spinner-large'></div>
         <p>Finding your perfect jobs...</p>
       </div>
     );
   }
 
   return (
-    <div className="dashboard-container">
+    <div className='dashboard-container'>
       {/* Welcome Banner */}
-      <div className="dashboard-banner fade-in">
-        <div className="banner-content">
-          <div className="banner-icon">
+      <div className='dashboard-banner fade-in'>
+        <div className='banner-content'>
+          <div className='banner-icon'>
             <Briefcase size={32} />
           </div>
           <div>
-            <h1 className="banner-title">Your Job Matches</h1>
-            <p className="text-secondary banner-subtitle">
-              {jobs.length > 0 
+            <h1 className='banner-title'>Your Job Matches</h1>
+            <p className='text-secondary banner-subtitle'>
+              {jobs.length > 0
                 ? `We found ${jobs.length} opportunity${jobs.length !== 1 ? 'ies' : ''} matching your preferences from the last ${dateRange} day${dateRange !== 1 ? 's' : ''}.`
-                : `No jobs found matching your preferences in the last ${dateRange} day${dateRange !== 1 ? 's' : ''}.`
-              }
+                : `No jobs found matching your preferences in the last ${dateRange} day${dateRange !== 1 ? 's' : ''}.`}
             </p>
           </div>
         </div>
-        
-        <div className="banner-actions">
-          <div className="filter-group">
+
+        <div className='banner-actions'>
+          <div className='filter-group'>
             {[
               { label: '24h', value: 1 },
               { label: '2 Days', value: 2 },
               { label: '3 Days', value: 3 },
               { label: '7 Days', value: 7 },
             ].map((range, idx) => (
-               <button
-                 key={`filter-${idx}`}
-                 onClick={() => handleDateRangeChange(range.value)}
-                 className={`btn-filter ${dateRange === range.value ? 'active' : ''}`}
-               >
-                 {range.label}
-               </button>
+              <button
+                key={`filter-${idx}`}
+                onClick={() => handleDateRangeChange(range.value)}
+                className={`btn-filter ${dateRange === range.value ? 'active' : ''}`}
+              >
+                {range.label}
+              </button>
             ))}
           </div>
-          
-          <button 
-            onClick={manuallyTriggerFetch} 
-            className="btn btn-secondary btn-refresh"
+
+          <button
+            onClick={manuallyTriggerFetch}
+            className='btn btn-secondary btn-refresh'
             disabled={refreshing}
           >
-            <RefreshCw size={16} className={refreshing ? 'spin' : ''} /> 
+            <RefreshCw size={16} className={refreshing ? 'spin' : ''} />
             {refreshing ? 'Refreshing...' : 'Refresh Feed'}
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="error-banner slide-down">
+        <div className='error-banner slide-down'>
           <span>⚠️ Error: {error}</span>
         </div>
       )}
 
       {jobs.length === 0 && !loading ? (
-        <div className="empty-state fade-in">
-          <div className="empty-icon">
+        <div className='empty-state fade-in'>
+          <div className='empty-icon'>
             <Zap size={48} />
           </div>
           <h2>No jobs found</h2>
           <p>
-            {preferences 
+            {preferences
               ? `No jobs match your preferences in the last ${dateRange} day${dateRange !== 1 ? 's' : ''}. Try adjusting your preferences or check back later.`
-              : 'Set up your preferences to get personalized job recommendations.'
-            }
+              : 'Set up your preferences to get personalized job recommendations.'}
           </p>
-          <button onClick={manuallyTriggerFetch} className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
+          <button
+            onClick={manuallyTriggerFetch}
+            className='btn btn-primary'
+            style={{ marginTop: '1.5rem' }}
+          >
             <RefreshCw size={16} /> Check Again
           </button>
         </div>
       ) : (
-        <div className="jobs-grid">
+        <div className='jobs-grid'>
           {jobs.map((job, index) => (
-            <div key={job.id} className="job-card-wrapper" style={{ animationDelay: `${index * 0.1}s` }}>
-              <JobCard job={job} onUpdate={() => setJobs(current => current.filter(j => j.id !== job.id))} />
+            <div
+              key={job.id}
+              className='job-card-wrapper'
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <JobCard
+                job={job}
+                onUpdate={() =>
+                  setJobs((current) => current.filter((j) => j.id !== job.id))
+                }
+              />
             </div>
           ))}
         </div>
