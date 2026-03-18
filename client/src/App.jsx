@@ -13,6 +13,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthProvider from './contexts/AuthProvider';
 import { ThemeProvider } from './contexts/ThemeProvider';
 import ProtectedRoute from './components/layout/ProtectedRoute';
+import PublicRoute from './components/layout/PublicRoute';
 import Layout from './components/layout/Layout';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -28,23 +29,28 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/verify-email" element={<EmailVerification />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            
-            <Route element={<ProtectedRoute />}>
-                <Route element={<Layout />}>
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/history" element={<History />} />
-                  {/* Default redirect */}
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                </Route>
+            <Route element={<PublicRoute />}>
+              <Route path='/login' element={<Login />} />
+              <Route path='/signup' element={<Signup />} />
+              <Route path='/verify-email' element={<EmailVerification />} />
+              <Route path='/onboarding' element={<Onboarding />} />
             </Route>
-            
+
+            <Route element={<ProtectedRoute />}>
+              <Route element={<Layout />}>
+                <Route path='/dashboard' element={<Dashboard />} />
+                <Route path='/settings' element={<Settings />} />
+                <Route path='/history' element={<History />} />
+                {/* Default redirect */}
+                <Route
+                  path='/'
+                  element={<Navigate to='/dashboard' replace />}
+                />
+              </Route>
+            </Route>
+
             {/* Catch all */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path='*' element={<Navigate to='/login' replace />} />
           </Routes>
         </AuthProvider>
       </ThemeProvider>

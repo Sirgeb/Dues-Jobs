@@ -23,15 +23,15 @@ router.post('/send-otp', async (req, res) => {
 
   try {
     const result = await OTPService.sendOTP(email);
-    
+
     if (!result.success) {
       return res.status(429).json({ error: result.message });
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: result.message,
-      expiresIn: 15 * 60 // 15 minutes in seconds
+      expiresIn: 15 * 60, // 15 minutes in seconds
     });
   } catch (err) {
     console.error('Send OTP Error:', err);
@@ -57,14 +57,14 @@ router.post('/verify-otp', async (req, res) => {
 
   try {
     const result = await OTPService.verifyOTP(email, code);
-    
+
     if (!result.success) {
       return res.status(400).json({ error: result.message });
     }
 
-    res.json({ 
-      success: true, 
-      message: result.message
+    res.json({
+      success: true,
+      message: result.message,
     });
   } catch (err) {
     console.error('Verify OTP Error:', err);
@@ -86,15 +86,15 @@ router.post('/resend-otp', async (req, res) => {
 
   try {
     const result = await OTPService.resendOTP(email);
-    
+
     if (!result.success) {
       return res.status(429).json({ error: result.message });
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: result.message,
-      expiresIn: 15 * 60 // 15 minutes in seconds
+      expiresIn: 15 * 60, // 15 minutes in seconds
     });
   } catch (err) {
     console.error('Resend OTP Error:', err);
