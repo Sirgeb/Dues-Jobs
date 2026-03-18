@@ -21,6 +21,14 @@ export default function Dashboard() {
   const [preferences, setPreferences] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [dateRange, setDateRange] = useState(3); // Default: 3 days
+  const [currentPage, setCurrentPage] = useState(1);
+  const jobsPerPage = 12;
+  const totalPages = Math.ceil(jobs.length / jobsPerPage);
+
+  const paginatedJobs = jobs.slice(
+    (currentPage - 1) * jobsPerPage,
+    currentPage * jobsPerPage,
+  );
 
   // Fetch user preferences first
   const fetchPreferences = async () => {
@@ -128,6 +136,7 @@ export default function Dashboard() {
       `Applied ${days} day filter: ${jobsToFilter.length} → ${dateFilteredJobs.length} jobs`,
     );
     setJobs(dateFilteredJobs);
+    setCurrentPage(1);
   };
 
   // Handle date range change
@@ -252,7 +261,7 @@ export default function Dashboard() {
         </div>
       ) : (
         <div className='jobs-grid'>
-          {jobs.map((job, index) => (
+          {paginatedJobs.map((job, index) => (
             <div
               key={job.id}
               className='job-card-wrapper'
@@ -266,6 +275,31 @@ export default function Dashboard() {
               />
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {jobs.length > 0 && (
+        <div className='pagination'>
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className='btn btn-secondary'
+          >
+            Prev
+          </button>
+
+          <span className='pagination-info'>
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className='btn btn-secondary'
+          >
+            Next
+          </button>
         </div>
       )}
     </div>
