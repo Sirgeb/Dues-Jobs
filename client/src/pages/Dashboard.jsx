@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { apiRequest, triggerFetch } from '../services/api';
 import JobCard from '../components/jobs/JobCard';
+import SearchBar from '../components/search/Search';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { RefreshCw, Briefcase, Zap } from 'lucide-react';
 
@@ -227,6 +228,8 @@ export default function Dashboard() {
           <span>⚠️ Error: {error}</span>
         </div>
       )}
+
+      <SearchBar setJobs={setJobs} />
 
       {jobs.length === 0 && !loading ? (
         <div className='empty-state fade-in'>
