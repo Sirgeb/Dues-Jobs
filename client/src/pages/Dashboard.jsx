@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { apiRequest, triggerFetch } from '../services/api';
 import JobCard from '../components/jobs/JobCard';
 import SearchBar from '../components/search/Search';
@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [dateRange, setDateRange] = useState(3); // Default: 3 days
   const [currentPage, setCurrentPage] = useState(1);
+  const jobsRef = useRef(null);
   const jobsPerPage = 12;
   const totalPages = Math.ceil(jobs.length / jobsPerPage);
 
@@ -158,6 +159,13 @@ export default function Dashboard() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    jobsRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, [currentPage]);
+
   const manuallyTriggerFetch = async () => {
     if (confirm('Trigger backend scraper? This may take a few seconds.')) {
       try {
@@ -186,7 +194,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className='dashboard-container'>
+    <div className='dashboard-container' ref={jobsRef}>
       {/* Welcome Banner */}
       <div className='dashboard-banner fade-in'>
         <div className='banner-content'>
