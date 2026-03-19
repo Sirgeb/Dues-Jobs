@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo } from 'react';
 import { Search as SearchIcon, X, Loader2 } from 'lucide-react';
 import { apiRequest } from '../../services/api';
-import './search.css';
+import './Search.css';
 
 const SearchBar = memo(({ setJobs }) => {
   const [query, setQuery] = useState('');

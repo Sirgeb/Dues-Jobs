@@ -19,35 +19,37 @@ app.use(helmet());
 
 const whitelist = [
   'http://localhost:5173',
-  'https://dues-jobs-client.vercel.app'
+  'https://dues-jobs-client26.vercel.app',
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Check if origin is in whitelist
-    const isWhitelisted = whitelist.some(allowed => {
-      if (allowed.includes('*')) {
-        // Handle wildcard domains
-        const pattern = allowed.replace('*', '.*');
-        return new RegExp(pattern).test(origin);
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      // Check if origin is in whitelist
+      const isWhitelisted = whitelist.some((allowed) => {
+        if (allowed.includes('*')) {
+          // Handle wildcard domains
+          const pattern = allowed.replace('*', '.*');
+          return new RegExp(pattern).test(origin);
+        }
+        return allowed === origin;
+      });
+
+      if (isWhitelisted || process.env.NODE_ENV !== 'production') {
+        callback(null, true);
+      } else {
+        console.warn(`CORS blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
       }
-      return allowed === origin;
-    });
-    
-    if (isWhitelisted || process.env.NODE_ENV !== 'production') {
-      callback(null, true);
-    } else {
-      console.warn(`CORS blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-cron-secret'],
-}));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-cron-secret'],
+  }),
+);
 
 app.use(morgan('dev'));
 app.use(express.json());
@@ -83,7 +85,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-
 const telegramBot = require('./services/TelegramBotHandler');
 
 const required = [
@@ -95,19 +96,21 @@ const required = [
   'SMTP_PORT',
   'SMTP_USER',
   'SMTP_PASS',
-  'EMAIL_FROM'
+  'EMAIL_FROM',
 ];
 
-const missing = required.filter(key => !process.env[key]);
+const missing = required.filter((key) => !process.env[key]);
 if (missing.length) {
   console.error('Missing env vars:', missing.join(', '));
   process.exit(1);
 }
 
-app.listen(PORT, () => {
-  const serverUrl = process.env.BACKEND_URL || `http://localhost:${PORT}`;
-  console.log(`Server running on ${serverUrl}`);
-  telegramBot.start();
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    const serverUrl = process.env.BACKEND_URL || `http://localhost:${PORT}`;
+    console.log(`Server running on ${serverUrl}`);
+    telegramBot.start();
+  });
+}
 
 module.exports = app;

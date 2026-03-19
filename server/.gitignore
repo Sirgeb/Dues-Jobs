@@ -100,3 +100,4 @@ dist/
 .yarn/unplugged
 tmp/
 temp/
+.vercel

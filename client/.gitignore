@@ -84,3 +84,4 @@ out/
 coverage/
 *.lcov
 .nyc_output/
+.vercel
