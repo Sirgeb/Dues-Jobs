@@ -117,6 +117,7 @@
 .btn-filter {
   font-size: 0.85rem;
   padding: 8px 20px;
+  margin-top: 5px;
   background: transparent;
   color: var(--text-secondary);
   font-weight: 600;
@@ -248,7 +249,7 @@
   }
 
   .banner-title {
-    font-size: 1.75rem;
+    font-size: 1.3rem;
   }
 
   .banner-actions {
@@ -267,6 +268,7 @@
   .btn-filter {
     flex: 1;
     text-align: center;
+    padding: 8px 10px;
   }
 
   .jobs-grid {

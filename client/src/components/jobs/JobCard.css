@@ -1,5 +1,7 @@
 /* Job Card */
 .job-card {
+  display: flex;
+  flex-direction: column;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -8,6 +10,8 @@
   position: relative;
   overflow: hidden;
   animation: slideUp 0.5s ease-out;
+  min-height: 235px;
+  justify-content: space-between;
 }
 
 .job-card::before {

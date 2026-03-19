@@ -7,7 +7,6 @@ import {
   Settings,
   LogOut,
   Menu,
-  X,
   Briefcase,
 } from 'lucide-react';
 
@@ -28,7 +27,7 @@ export default function Layout() {
 
   return (
     <div className='app-container'>
-      {/* Mobile Header (Visible only on small screens) */}
+      {/* Mobile Header */}
       <header className='mobile-header'>
         <div className='flex items-center gap-3'>
           <button
@@ -37,7 +36,7 @@ export default function Layout() {
           >
             <Menu size={24} />
           </button>
-          <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>DuesJobs</div>
+          <div className='mobile-logo-text'>DuesJobs</div>
         </div>
       </header>
 
@@ -52,20 +51,13 @@ export default function Layout() {
       {/* Sidebar navigation */}
       <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`}>
         <div className='sidebar-logo'>
-          <div
-            style={{
-              background: 'var(--brand)',
-              padding: '6px',
-              borderRadius: '8px',
-              display: 'flex',
-            }}
-          >
+          <div className='sidebar-icon-wrapper'>
             <Briefcase size={20} color='white' />
           </div>
           <span>DuesJobs</span>
         </div>
 
-        <nav style={{ flex: 1 }}>
+        <nav className='sidebar-nav'>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -82,42 +74,15 @@ export default function Layout() {
           })}
         </nav>
 
-        <div
-          style={{
-            marginTop: 'auto',
-            borderTop: '1px solid var(--border)',
-            paddingTop: '1rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-          }}
-        >
-          <div
-            className='text-xs'
-            style={{
-              paddingLeft: '0.75rem',
-              marginTop: '0.5rem',
-              color: '#8B949E',
-            }}
-          >
-            {user?.email}
-          </div>
-          <button
-            onClick={signOut}
-            className='nav-link hover:cursor-pointer'
-            style={{
-              width: '100%',
-              color: 'var(--text-muted)',
-              justifyContent: 'flex-start',
-            }}
-          >
+        <div className='text-xs user-email-display'>{user?.email}</div>
+        <div className='sidebar-footer'>
+          <button onClick={signOut} className='nav-link signout-button'>
             <LogOut size={18} />
             Sign Out
           </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <main className='main-content'>
         <Outlet />
       </main>
