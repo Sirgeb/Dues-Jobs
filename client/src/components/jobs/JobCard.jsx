@@ -10,6 +10,7 @@ import {
 import { apiRequest } from '../../services/api';
 import { formatDistanceToNow } from 'date-fns';
 import './JobCard.css';
+import { formatSalary } from '../../utils/format-salary';
 
 export default function JobCard({ job, onUpdate }) {
   const [loading, setLoading] = useState(false);
@@ -79,7 +80,9 @@ export default function JobCard({ job, onUpdate }) {
           {job.salary && (
             <>
               <span className='meta-divider'>•</span>
-              <span className='meta-item salary'>{job.salary}</span>
+              <span className='meta-item salary'>
+                {formatSalary(job.salary)}
+              </span>
             </>
           )}
         </div>
