@@ -201,7 +201,7 @@ export default function Dashboard() {
           <div className='banner-icon'>
             <Briefcase size={32} />
           </div>
-          <div>
+          <div className='banner-title-container'>
             <h1 className='banner-title'>Your Job Matches</h1>
             <p className='text-secondary banner-subtitle'>
               {jobs.length > 0
