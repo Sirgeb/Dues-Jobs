@@ -3,6 +3,7 @@
 Node.js + Express backend service for the daily job-finder SaaS.
 
 ## Features
+
 - **Daily Job Fetch**: Scheduled cron job to fetch jobs from multiple sources (Mocked: LinkedIn, Indeed, etc.).
 - **Deduplication**: Automatically removes duplicates using canonical hashing.
 - **Smart Matching**: Matches jobs to users based on preferences (Keywords, Location, Remote, Source).
@@ -13,6 +14,7 @@ Node.js + Express backend service for the daily job-finder SaaS.
 ## Setup
 
 1. **Install Dependencies**
+
    ```bash
    cd server
    yarn
@@ -32,6 +34,7 @@ Node.js + Express backend service for the daily job-finder SaaS.
 ## Running Locally
 
 **Start Server:**
+
 ```bash
 yarn start
 # or
@@ -39,10 +42,13 @@ yarn dev
 ```
 
 **Trigger Daily Fetch Manually:**
+
 ```bash
 yarn fetch:daily
 ```
+
 Or via API:
+
 ```bash
 curl -X POST http://localhost:5000/api/v1/fetch/run \
   -H "cron_secret: dev_secret"
@@ -51,6 +57,7 @@ curl -X POST http://localhost:5000/api/v1/fetch/run \
 ## Testing
 
 Run unit tests:
+
 ```bash
 yarn test
 ```
@@ -58,6 +65,7 @@ yarn test
 ## Deployment (Render)
 
 This repo is configured for [Render](https://render.com).
+
 - Connect repository.
 - Use `render.yaml` for blueprint or deploy as "Web Service" + "Cron Job".
 - Set environment variables in dashboard.
@@ -65,6 +73,7 @@ This repo is configured for [Render](https://render.com).
 ## API Documentation
 
 - `GET /api/v1/jobs`: List matched jobs.
+- `POST /api/v1/jobs/seed`: Seeds the database with dummy job data for testing.
 - `POST /api/v1/user_jobs/:job_id/mark`: Mark as applied/ignored.
 - `GET/PUT /api/v1/users/me/preferences`: Manage preferences.
 
